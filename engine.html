@@ -3,300 +3,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Whipple Liquidity Engine | Crash Course</title>
+    <title>The Whipple Liquidity Engine | Trading Logic Blueprint</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    
-    <!-- 
-        PALETTE: Neon Quant
-        Background: #0f172a (Slate 900)
-        Card Bg: #1e293b (Slate 800)
-        Primary: #3b82f6 (Blue 500)
-        Secondary: #8b5cf6 (Violet 500)
-        Success: #10b981 (Emerald 500)
-        Danger: #ef4444 (Red 500)
-        Text: #f1f5f9 (Slate 100)
-    -->
-
+    <link href="https://fonts.googleapis.com/css?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0f172a;
-            color: #f1f5f9;
-        }
-        
-        h1, h2, h3, .mono-font {
-            font-family: 'JetBrains Mono', monospace;
-        }
+        /* Typography */
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
 
-        /* Chart Container Styling - MANDATORY */
+        /* MANDATORY: Chart Container Styling */
         .chart-container {
             position: relative;
             width: 100%;
-            max-width: 600px; /* Constrain width for readability */
-            margin-left: auto;
-            margin-right: auto;
-            height: 300px; /* Base height */
+            max-width: 600px;
+            margin: 0 auto;
+            height: 300px; /* Mobile height */
             max-height: 400px;
         }
-
         @media (min-width: 768px) {
             .chart-container {
-                height: 350px;
+                height: 350px; /* Desktop height */
             }
         }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0f172a;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #3b82f6;
-        }
-
-        .neon-shadow {
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.15);
-        }
-        
-        .card-hover:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 10px rgba(59, 130, 246, 0.2);
+        /* Aesthetic Utils */
+        .neon-text { text-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+        .card-glow {
+            border: 1px solid #334155;
             transition: all 0.3s ease;
         }
+        .card-glow:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
     </style>
-    <!-- 
-        PLAN SUMMARY:
-        1. Intro: Hook the user with the "Ticket Scalper" analogy.
-        2. Market Microstructure: Visualize the Spread and Maker vs Taker concepts.
-        3. The Signal: Visualize Sentiment Analysis (NLP) and the Time Lag.
-        4. The Code: A visual Flowchart of the "Whipple Loop".
-        5. Risk: Visualize Inventory Risk (The Bag).
-        
-        NO SVG USED. NO MERMAID USED.
-    -->
 </head>
 <body class="antialiased selection:bg-blue-500 selection:text-white">
 
-    <!-- Header / Hero -->
-    <header class="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-700">
+    <header class="border-b border-slate-800 bg-slate-900/95 backdrop-blur sticky top-0 z-50">
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-2">
-                <span class="text-2xl">⚡</span>
+            <div class="flex items-center gap-3">
+                <div class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_#10b981]"></div>
                 <div>
-                    <h1 class="text-xl font-bold text-blue-400 tracking-tighter">WHIPPLE <span class="text-white">ENGINE</span></h1>
-                    <p class="text-xs text-slate-400 font-mono">STATUS: ONLINE // ZERO TO ARBITRAGE</p>
+                    <h1 class="font-mono font-bold text-xl tracking-tighter text-white">
+                        WHIPPLE <span class="text-blue-500">LIQUIDITY ENGINE</span>
+                    </h1>
+                    <div class="text-[10px] text-slate-500 font-mono tracking-widest uppercase">Sentiment Arbitrage Protocol</div>
                 </div>
             </div>
-            <div class="hidden md:block text-right">
-                <div class="inline-block px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/50 text-emerald-400 text-xs font-mono">
-                    System Healthy
-                </div>
+            <div class="hidden md:flex gap-6 text-xs font-mono text-slate-400">
+                <span>STATUS: <span class="text-emerald-400">ACTIVE</span></span>
+                <span>LATENCY: <span class="text-blue-400">12ms</span></span>
+                <span>MODE: <span class="text-yellow-400">MAKER</span></span>
             </div>
         </div>
     </header>
 
-    <main class="container mx-auto px-4 py-8 space-y-16">
+    <main class="container mx-auto px-4 py-12 space-y-24">
 
-        <!-- SECTION 1: THE CONCEPT (SCALPER) -->
-        <section id="concept" class="scroll-mt-24">
-            <div class="max-w-3xl mx-auto text-center mb-10">
-                <span class="text-blue-500 font-mono text-sm tracking-widest uppercase">Phase 1: Market Microstructure</span>
-                <h2 class="text-3xl md:text-4xl font-bold mt-2 mb-4">The Digital Ticket Scalper</h2>
-                <p class="text-slate-400 text-lg leading-relaxed">
-                    Forget complex stocks. Think of a ticket scalper at a concert. They don't care if the show is good; they care about the price difference between buying and selling. That difference is the <strong>Spread</strong>.
-                </p>
-            </div>
+        <section class="max-w-3xl mx-auto text-center space-y-6">
+            <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight">
+                Don't Bet on the Outcome.<br>
+                <span class="text-blue-500 neon-text">Profit from the Panic.</span>
+            </h2>
+            <p class="text-lg text-slate-400 leading-relaxed">
+                Most traders are "Takers" betting on who wins. We are "Makers." We operate like a digital ticket scalper, providing liquidity to the desperate and capturing the spread between human hope and human fear.
+            </p>
+        </section>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                <!-- Text Content -->
-                <div class="bg-slate-800 rounded-xl p-6 border border-slate-700 neon-shadow card-hover">
-                    <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                        <span>🎫</span> The Scalper's Edge
-                    </h3>
-                    <ul class="space-y-4 text-slate-300">
-                        <li class="flex items-start">
-                            <span class="text-blue-500 mr-2 mt-1">▶</span>
-                            <div>
-                                <strong class="text-white">The Goal:</strong> Provide liquidity. Be ready to buy from desperate sellers and sell to eager buyers.
-                            </div>
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div class="space-y-6">
+                <div class="inline-block px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-blue-400 text-xs font-mono">
+                    PHASE 1: THE MONEY
+                </div>
+                <h3 class="text-3xl font-bold text-white">The Digital Scalper</h3>
+                <div class="prose prose-invert text-slate-400">
+                    <p>
+                        Imagine a scalper outside a concert. He buys tickets for <strong>$50</strong> and sells them for <strong>$54</strong>. He doesn't care if the band is good. He profits from the <strong>Spread</strong>.
+                    </p>
+                    <p>
+                        In prediction markets (0 to 100), we place <strong>Limit Orders</strong> on both sides.
+                    </p>
+                    <ul class="space-y-3 mt-4 font-mono text-sm">
+                        <li class="flex items-center gap-3">
+                            <span class="text-emerald-400 text-xl">1</span>
+                            <span>BID (Buy Low): We pay $0.50</span>
                         </li>
-                        <li class="flex items-start">
-                            <span class="text-blue-500 mr-2 mt-1">▶</span>
-                            <div>
-                                <strong class="text-white">The Spread:</strong> This is your profit. If you buy at $0.50 and sell at $0.54, you make $0.04 risk-free (if both fill).
-                            </div>
+                        <li class="flex items-center gap-3">
+                            <span class="text-red-400 text-xl">2</span>
+                            <span>ASK (Sell High): We charge $0.54</span>
                         </li>
-                        <li class="flex items-start">
-                            <span class="text-emerald-500 mr-2 mt-1">▶</span>
-                            <div>
-                                <strong class="text-white">Maker vs. Taker:</strong> We are <em>Makers</em> (The House). We set the price and wait. Takers (Gamblers) cross the spread and pay the fees.
-                            </div>
+                        <li class="flex items-center gap-3 border-t border-slate-700 pt-3">
+                            <span class="text-blue-400 text-xl font-bold">=</span>
+                            <span class="text-white font-bold">PROFIT: $0.04 (Risk Free)</span>
                         </li>
                     </ul>
                 </div>
+            </div>
+            
+            <div class="bg-slate-800 rounded-xl p-6 card-glow">
+                <div class="flex justify-between items-center mb-6">
+                    <h4 class="font-mono text-sm text-slate-300">LIVE_ORDER_BOOK::SPREAD_VISUALIZATION</h4>
+                    <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="spreadChart"></canvas>
+                </div>
+                <p class="text-xs text-center text-slate-500 mt-4 font-mono">
+                    We sit in the "Inefficiency Gap" between buyers and sellers.
+                </p>
+            </div>
+        </section>
 
-                <!-- Visualization: The Spread -->
-                <div class="bg-slate-800 rounded-xl p-6 border border-slate-700 neon-shadow">
-                    <div class="mb-4 flex justify-between items-center">
-                        <h4 class="text-sm font-mono text-slate-400 uppercase">Profit Mechanics: The Spread</h4>
-                        <span class="text-xs bg-slate-700 px-2 py-1 rounded text-blue-300">Live Simulation</span>
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div class="lg:col-span-12 text-center mb-8">
+                <div class="inline-block px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-purple-400 text-xs font-mono">
+                    PHASE 2: THE SIGNAL
+                </div>
+                <h3 class="text-3xl font-bold text-white mt-4">News Moves Faster Than Price</h3>
+                <p class="text-slate-400 mt-2 max-w-2xl mx-auto">
+                    Humans are slow. Twitter is fast. We use <strong>NLP (Natural Language Processing)</strong> to read the news and move our orders before the human traders react.
+                </p>
+            </div>
+
+            <div class="lg:col-span-5 bg-slate-800 rounded-xl p-6 card-glow">
+                <h4 class="font-bold text-white mb-2">A. NLP Polarity Scoring</h4>
+                <p class="text-sm text-slate-400 mb-4">Converting vague tweets into hard math.</p>
+                <div class="chart-container">
+                    <canvas id="nlpChart"></canvas>
+                </div>
+            </div>
+
+            <div class="lg:col-span-7 bg-slate-800 rounded-xl p-6 card-glow">
+                <h4 class="font-bold text-white mb-2">B. The Arbitrage Window (The Lag)</h4>
+                <p class="text-sm text-slate-400 mb-4">
+                    The 30-second gap where the bot knows the news, but the market price hasn't crashed yet.
+                </p>
+                <div class="chart-container">
+                    <canvas id="lagChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-slate-900/50 border border-slate-800 rounded-2xl p-8 md:p-12">
+            <div class="text-center mb-12">
+                <div class="inline-block px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-emerald-400 text-xs font-mono">
+                    PHASE 3: THE CODE
+                </div>
+                <h3 class="text-3xl font-bold text-white mt-4">The Whipple Loop</h3>
+                <p class="text-slate-400 mt-2">
+                    The architecture of the bot. It does not sleep. It does not guess. It loops.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
+                <div class="hidden md:block absolute top-1/2 left-0 w-full h-1 bg-slate-700 -z-10 transform -translate-y-1/2"></div>
+                
+                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 shadow-lg text-center group hover:-translate-y-2 transition-transform duration-300">
+                    <div class="w-12 h-12 mx-auto bg-slate-700 rounded-full flex items-center justify-center text-2xl mb-4 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                        👂
                     </div>
-                    <div class="chart-container">
-                        <canvas id="scalperChart"></canvas>
+                    <h4 class="font-mono font-bold text-blue-400">1. LISTEN</h4>
+                    <p class="text-xs text-slate-300 mt-2">Fetch Order Book.<br>Get Current Price.</p>
+                </div>
+
+                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 shadow-lg text-center group hover:-translate-y-2 transition-transform duration-300">
+                    <div class="w-12 h-12 mx-auto bg-slate-700 rounded-full flex items-center justify-center text-2xl mb-4 group-hover:bg-purple-500 group-hover:text-white transition-colors">
+                        🧠
                     </div>
-                    <p class="text-xs text-center text-slate-500 mt-2">
-                        Visualizing the gap between the Bid (Buy) and Ask (Sell) price.
+                    <h4 class="font-mono font-bold text-purple-400">2. ANALYZE</h4>
+                    <p class="text-xs text-slate-300 mt-2">Scan Twitter (X).<br>Calc Sentiment Score.</p>
+                </div>
+
+                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 shadow-lg text-center group hover:-translate-y-2 transition-transform duration-300">
+                    <div class="w-12 h-12 mx-auto bg-slate-700 rounded-full flex items-center justify-center text-2xl mb-4 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                        ⚡
+                    </div>
+                    <h4 class="font-mono font-bold text-emerald-400">3. EXECUTE</h4>
+                    <p class="text-xs text-slate-300 mt-2">
+                        If Score < -0.5:<br>
+                        <span class="text-red-400 font-bold">DUMP INVENTORY</span>
                     </p>
                 </div>
-            </div>
-        </section>
 
-        <!-- SECTION 2: THE SIGNAL (SENTIMENT) -->
-        <section id="signal" class="scroll-mt-24 border-t border-slate-800 pt-16">
-            <div class="max-w-3xl mx-auto mb-10">
-                <span class="text-violet-500 font-mono text-sm tracking-widest uppercase">Phase 2: The Signal</span>
-                <h2 class="text-3xl font-bold mt-2 mb-4">News Moves Faster Than Price</h2>
-                <p class="text-slate-400 text-lg leading-relaxed">
-                    How do we know when to move our prices? We watch the news. Information hits Twitter (X) seconds before the market reacts. That <strong>time lag</strong> is our opportunity to cancel bad orders.
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
-                <!-- Chart: NLP Analysis -->
-                <div class="lg:col-span-1 bg-slate-800 rounded-xl p-6 border border-slate-700 card-hover">
-                    <h3 class="text-lg font-bold text-white mb-2">NLP Analysis</h3>
-                    <p class="text-sm text-slate-400 mb-4">We use Natural Language Processing (TextBlob/VADER) to score tweets.</p>
-                    <div class="chart-container" style="height: 250px;">
-                        <canvas id="nlpChart"></canvas>
+                <div class="bg-slate-800 p-6 rounded-lg border border-slate-600 shadow-lg text-center group hover:-translate-y-2 transition-transform duration-300">
+                    <div class="w-12 h-12 mx-auto bg-slate-700 rounded-full flex items-center justify-center text-2xl mb-4 group-hover:bg-yellow-500 group-hover:text-white transition-colors">
+                        💤
                     </div>
-                </div>
-
-                <!-- Chart: The Time Lag -->
-                <div class="lg:col-span-2 bg-slate-800 rounded-xl p-6 border border-slate-700 card-hover">
-                    <h3 class="text-lg font-bold text-white mb-2">The Speed of Information</h3>
-                    <p class="text-sm text-slate-400 mb-4">
-                        The "Lag Strategy" relies on beating the human reaction time. The bot reacts to the tweet instantly; the market price crashes 30 seconds later.
-                    </p>
-                    <div class="chart-container">
-                        <canvas id="lagChart"></canvas>
-                    </div>
+                    <h4 class="font-mono font-bold text-yellow-400">4. SLEEP</h4>
+                    <p class="text-xs text-slate-300 mt-2">Wait 100ms.<br>Repeat Loop.</p>
                 </div>
             </div>
         </section>
 
-        <!-- SECTION 3: THE CODE (EXECUTION FLOW) -->
-        <section id="execution" class="scroll-mt-24 border-t border-slate-800 pt-16">
-            <div class="max-w-3xl mx-auto text-center mb-10">
-                <span class="text-emerald-500 font-mono text-sm tracking-widest uppercase">Phase 3: The Execution</span>
-                <h2 class="text-3xl font-bold mt-2 mb-4">The Whipple Loop</h2>
-                <p class="text-slate-400 text-lg leading-relaxed">
-                    You don't need to be a genius engineer. You just need a loop that never sleeps. The bot cycles through these four steps every second.
-                </p>
-            </div>
-
-            <!-- Structured HTML Flowchart (NO SVG/MERMAID) -->
-            <div class="max-w-4xl mx-auto">
-                <div class="flex flex-col md:flex-row justify-center items-stretch gap-4 relative">
-                    
-                    <!-- Step 1 -->
-                    <div class="flex-1 bg-slate-800 p-6 rounded-xl border-l-4 border-blue-500 shadow-lg flex flex-col items-center text-center relative z-10">
-                        <div class="text-3xl mb-2">📡</div>
-                        <h4 class="font-mono font-bold text-blue-400 mb-2">1. LISTEN</h4>
-                        <p class="text-sm text-slate-300">Connect to Polymarket API. Check current Order Book price.</p>
-                    </div>
-
-                    <!-- Arrow Mobile (Down) / Desktop (Right) -->
-                    <div class="flex items-center justify-center text-slate-600 text-2xl font-bold md:-rotate-90 py-2 md:py-0">
-                        ⬇
-                    </div>
-
-                    <!-- Step 2 -->
-                    <div class="flex-1 bg-slate-800 p-6 rounded-xl border-l-4 border-violet-500 shadow-lg flex flex-col items-center text-center relative z-10">
-                        <div class="text-3xl mb-2">🧠</div>
-                        <h4 class="font-mono font-bold text-violet-400 mb-2">2. READ</h4>
-                        <p class="text-sm text-slate-300">Scan Twitter for keywords (e.g., "Snow" + "NYC"). Calc Sentiment.</p>
-                    </div>
-
-                    <!-- Arrow -->
-                    <div class="flex items-center justify-center text-slate-600 text-2xl font-bold md:-rotate-90 py-2 md:py-0">
-                        ⬇
-                    </div>
-
-                    <!-- Step 3 -->
-                    <div class="flex-1 bg-slate-800 p-6 rounded-xl border-l-4 border-emerald-500 shadow-lg flex flex-col items-center text-center relative z-10">
-                        <div class="text-3xl mb-2">⚡</div>
-                        <h4 class="font-mono font-bold text-emerald-400 mb-2">3. ACT</h4>
-                        <p class="text-sm text-slate-300">
-                            <strong>If Negative:</strong> Drop Buy Price.<br>
-                            <strong>If Positive:</strong> Raise Sell Price.
-                        </p>
-                    </div>
-
-                    <!-- Arrow -->
-                    <div class="flex items-center justify-center text-slate-600 text-2xl font-bold md:-rotate-90 py-2 md:py-0">
-                        ⬇
-                    </div>
-
-                    <!-- Step 4 -->
-                    <div class="flex-1 bg-slate-800 p-6 rounded-xl border-l-4 border-slate-500 shadow-lg flex flex-col items-center text-center relative z-10">
-                        <div class="text-3xl mb-2">💤</div>
-                        <h4 class="font-mono font-bold text-slate-400 mb-2">4. SLEEP</h4>
-                        <p class="text-sm text-slate-300">Wait 1 second. Repeat the loop to maintain fresh data.</p>
-                    </div>
-
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center pb-24">
+            <div class="bg-slate-800 rounded-xl p-6 card-glow order-2 lg:order-1">
+                <div class="flex justify-between items-center mb-6">
+                    <h4 class="font-mono text-sm text-slate-300">RISK_SIMULATION::CRASH_EVENT</h4>
+                    <span class="px-2 py-0.5 rounded bg-red-900/50 text-red-400 text-[10px] font-mono border border-red-500/30">PANIC MODE</span>
                 </div>
-            </div>
-        </section>
-
-        <!-- SECTION 4: RISK MANAGEMENT -->
-        <section id="risk" class="scroll-mt-24 border-t border-slate-800 pt-16 pb-24">
-            <div class="max-w-3xl mx-auto mb-10">
-                <span class="text-red-500 font-mono text-sm tracking-widest uppercase">Phase 4: The Risk</span>
-                <h2 class="text-3xl font-bold mt-2 mb-4">Don't Hold The Bag</h2>
-                <p class="text-slate-400 text-lg leading-relaxed">
-                    The biggest danger is <strong>Inventory Risk</strong>. If you buy tickets and the concert burns down, you lose everything. We model "Adverse Selection" to turn off the bot when "Toxic Flow" (insider trading) is detected.
-                </p>
-            </div>
-
-            <div class="bg-slate-800 rounded-xl p-6 border border-slate-700 neon-shadow">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-                    <div>
-                        <h3 class="text-xl font-bold text-white">Scenario: The Panic Dump</h3>
-                        <p class="text-sm text-slate-400">Inventory Value during a crash event vs. Bot reaction time.</p>
-                    </div>
-                    <div class="mt-4 md:mt-0 flex gap-4 text-xs font-mono">
-                        <div class="flex items-center"><span class="w-3 h-3 bg-red-500 rounded-full mr-2"></span>Human Holder</div>
-                        <div class="flex items-center"><span class="w-3 h-3 bg-emerald-500 rounded-full mr-2"></span>Whipple Bot</div>
-                    </div>
-                </div>
-                
                 <div class="chart-container">
                     <canvas id="riskChart"></canvas>
+                </div>
+            </div>
+
+            <div class="space-y-6 order-1 lg:order-2">
+                <div class="inline-block px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-red-400 text-xs font-mono">
+                    PHASE 4: THE SAFETY
+                </div>
+                <h3 class="text-3xl font-bold text-white">Don't Hold The Bag</h3>
+                <div class="prose prose-invert text-slate-400">
+                    <p>
+                        <strong>Inventory Risk</strong> is the killer. If you hold 1,000 shares of "Yes" and the candidate drops out, you lose everything.
+                    </p>
+                    <p>
+                        <strong>Adverse Selection (The Shark):</strong> If someone aggressively sells to us, they know something we don't.
+                    </p>
+                    <div class="bg-slate-900 p-4 border-l-4 border-red-500 rounded-r-lg mt-4">
+                        <strong class="text-red-400 font-mono text-sm block mb-1">PROTOCOL: TOXIC FLOW DETECTION</strong>
+                        <p class="text-xs">
+                            IF Sell_Volume > 500% Average THEN <br>
+                            > CANCEL ALL BUY ORDERS <br>
+                            > MARKET SELL INVENTORY
+                        </p>
+                    </div>
                 </div>
             </div>
         </section>
 
     </main>
 
-    <footer class="bg-slate-950 border-t border-slate-800 py-8 text-center text-slate-500 text-sm font-mono">
-        <p>THE WHIPPLE LIQUIDITY ENGINE v1.0</p>
-        <p class="mt-2 text-xs opacity-50">Educational Simulation. Not Financial Advice.</p>
+    <footer class="border-t border-slate-800 bg-slate-900 py-12 text-center">
+        <h4 class="font-mono font-bold text-blue-500 mb-2">THE WHIPPLE ENGINE</h4>
+        <p class="text-slate-500 text-sm mb-4">Educational Visualization of High-Frequency Sentiment Strategy</p>
+        <p class="text-xs text-slate-600 max-w-md mx-auto">
+            Disclaimer: Trading prediction markets involves significant risk. This is a theoretical model for educational purposes only.
+        </p>
     </footer>
 
-    <!-- JAVASCRIPT LOGIC -->
     <script>
-        // --- UTILS & CONFIG ---
-        
-        // Label Splitting Logic for >16 chars (Requirement)
+        // --- 1. UTILITY: Label Splitting (MANDATORY) ---
+        // Handles text wrapping for labels > 16 chars
         function splitLabel(str) {
             if (str.length <= 16) return str;
             const words = str.split(' ');
@@ -315,183 +269,167 @@
             return lines;
         }
 
-        // Global Chart Defaults for "Cyberpunk" Look
+        // --- 2. CONFIG: Chart.js Defaults ---
         Chart.defaults.color = '#94a3b8'; // Slate 400
         Chart.defaults.font.family = "'Inter', sans-serif";
-        Chart.defaults.scale.grid.color = '#334155'; // Slate 700
-        Chart.defaults.scale.grid.borderColor = '#475569'; // Slate 600
+        Chart.defaults.scale.grid.color = '#1e293b'; // Slate 800
+        Chart.defaults.scale.grid.borderColor = '#334155'; // Slate 700
 
-        // MANDATORY Tooltip Callback
-        const tooltipPlugin = {
-            tooltip: {
-                backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                titleColor: '#f8fafc',
-                bodyColor: '#cbd5e1',
-                borderColor: '#475569',
-                borderWidth: 1,
-                callbacks: {
-                    title: function(tooltipItems) {
-                        const item = tooltipItems[0];
-                        let label = item.chart.data.labels[item.dataIndex];
-                        if (Array.isArray(label)) {
-                            return label.join(' ');
-                        } else {
-                            return label;
+        // MANDATORY: Tooltip Callback Configuration
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                    titleColor: '#3b82f6',
+                    bodyColor: '#f8fafc',
+                    borderColor: '#334155',
+                    borderWidth: 1,
+                    padding: 12,
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            const item = tooltipItems[0];
+                            let label = item.chart.data.labels[item.dataIndex];
+                            if (Array.isArray(label)) {
+                                return label.join(' ');
+                            } else {
+                                return label;
+                            }
                         }
                     }
                 }
             }
         };
 
-        // --- CHART 1: SCALPER SPREAD (BAR) ---
-        const ctxScalper = document.getElementById('scalperChart').getContext('2d');
-        new Chart(ctxScalper, {
+        // --- 3. CHART: THE SPREAD (BAR) ---
+        new Chart(document.getElementById('spreadChart'), {
             type: 'bar',
             data: {
                 labels: ['Buy Price (Bid)', 'Sell Price (Ask)', 'The Spread (Profit)'].map(splitLabel),
                 datasets: [{
-                    label: 'Price per Share ($)',
-                    data: [0.50, 0.54, 0.04],
+                    label: 'Price in Cents',
+                    data: [50, 54, 4],
                     backgroundColor: [
-                        'rgba(59, 130, 246, 0.5)', // Blue
-                        'rgba(16, 185, 129, 0.5)', // Green
-                        'rgba(245, 158, 11, 0.8)'  // Amber (Highlight)
+                        'rgba(16, 185, 129, 0.2)', // Emerald (Buy)
+                        'rgba(244, 63, 94, 0.2)',  // Red (Sell)
+                        'rgba(59, 130, 246, 0.8)'  // Blue (Profit)
                     ],
                     borderColor: [
-                        '#3b82f6',
                         '#10b981',
-                        '#f59e0b'
+                        '#f43f5e',
+                        '#3b82f6'
                     ],
-                    borderWidth: 2
+                    borderWidth: 2,
+                    borderRadius: 4
                 }]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    ...tooltipPlugin,
-                    legend: { display: false }
-                },
+                ...commonOptions,
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: { display: true, text: 'Price ($)' }
-                    }
+                    y: { beginAtZero: true, title: { display: true, text: 'Price ($0.00)' } }
                 }
             }
         });
 
-        // --- CHART 2: NLP SCORES (HORIZONTAL BAR) ---
-        const ctxNLP = document.getElementById('nlpChart').getContext('2d');
-        new Chart(ctxNLP, {
+        // --- 4. CHART: NLP SENTIMENT (HORIZONTAL BAR) ---
+        new Chart(document.getElementById('nlpChart'), {
             type: 'bar',
             data: {
-                labels: ['"Great Show!"', '"Possible Delay"', '"CANCELLED FIRE!"'].map(splitLabel),
+                labels: [
+                    'Tweet: "Confirmed! Player injured!"',
+                    'Tweet: "Just a rumor, he is fine."',
+                    'Tweet: "Best performance ever!"'
+                ].map(splitLabel),
                 datasets: [{
                     label: 'Sentiment Score',
-                    data: [0.8, -0.2, -0.9],
+                    data: [-0.9, -0.2, 0.8],
                     backgroundColor: [
-                        'rgba(16, 185, 129, 0.6)', // Green
-                        'rgba(245, 158, 11, 0.6)', // Amber
-                        'rgba(239, 68, 68, 0.6)'   // Red
+                        'rgba(244, 63, 94, 0.6)',  // Red
+                        'rgba(250, 204, 21, 0.6)', // Yellow
+                        'rgba(16, 185, 129, 0.6)'  // Emerald
                     ],
-                    borderColor: [ '#10b981', '#f59e0b', '#ef4444' ],
+                    borderColor: ['#f43f5e', '#facc15', '#10b981'],
                     borderWidth: 1
                 }]
             },
             options: {
-                indexAxis: 'y', // Horizontal
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    ...tooltipPlugin,
-                    legend: { display: false }
-                },
+                ...commonOptions,
+                indexAxis: 'y',
                 scales: {
                     x: { min: -1, max: 1, title: { display: true, text: 'Polarity (-1 to +1)' } }
                 }
             }
         });
 
-        // --- CHART 3: THE LAG (LINE) ---
-        const ctxLag = document.getElementById('lagChart').getContext('2d');
-        new Chart(ctxLag, {
+        // --- 5. CHART: THE LAG (LINE) ---
+        new Chart(document.getElementById('lagChart'), {
             type: 'line',
             data: {
-                labels: ['T-0s', 'T-10s', 'T-20s', 'T-30s', 'T-40s', 'T-50s', 'T-60s'], // Short labels, no split needed
+                labels: ['0s (News)', '10s', '20s', '30s', '40s', '50s', '60s'],
                 datasets: [
                     {
                         label: 'Twitter Sentiment',
-                        data: [50, 48, 10, 10, 10, 10, 10], // Drops early at T-20
-                        borderColor: '#8b5cf6', // Purple
+                        data: [0.8, -0.9, -0.9, -0.9, -0.9, -0.9, -0.9], // Instant Drop
+                        borderColor: '#8b5cf6', // Violet
                         backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                        tension: 0.4,
+                        tension: 0.1,
                         fill: true
                     },
                     {
                         label: 'Market Price',
-                        data: [51, 50, 49, 48, 45, 15, 12], // Drops late at T-50
+                        data: [0.8, 0.8, 0.75, 0.6, -0.8, -0.9, -0.9], // Delayed Drop
                         borderColor: '#3b82f6', // Blue
-                        borderDash: [5, 5], // Dashed to show lag
+                        borderDash: [5, 5],
                         tension: 0.4,
                         fill: false
                     }
                 ]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: { mode: 'index', intersect: false },
+                ...commonOptions,
                 plugins: {
-                    ...tooltipPlugin,
+                    ...commonOptions.plugins,
                     title: { display: true, text: 'The 30-Second Inefficiency Gap' }
                 },
                 scales: {
-                    y: { beginAtZero: true, max: 60, title: { display: true, text: 'Value' } }
+                    y: { display: false } // Normalized Y-axis
                 }
             }
         });
 
-        // --- CHART 4: RISK / INVENTORY (AREA) ---
-        const ctxRisk = document.getElementById('riskChart').getContext('2d');
-        new Chart(ctxRisk, {
+        // --- 6. CHART: RISK MANAGEMENT (AREA) ---
+        new Chart(document.getElementById('riskChart'), {
             type: 'line',
             data: {
-                labels: ['News Breaks', '5s', '10s', '15s', '20s (Crash)', '25s', '30s'].map(splitLabel),
+                labels: ['Market Normal', 'Panic Start', 'Crash -10%', 'Crash -50%', 'Crash -90%', 'Market Dead'].map(splitLabel),
                 datasets: [
                     {
-                        label: 'Bot Inventory Value',
-                        data: [100, 100, 0, 0, 0, 0, 0], // Bot sells instantly at 10s before crash
-                        borderColor: '#10b981', // Emerald
-                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                        label: 'Whipple Bot Value',
+                        data: [1000, 1000, 980, 980, 980, 980], // Fast Exit
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
                         fill: true,
-                        stepped: true // Shows instant decision
+                        stepped: true
                     },
                     {
-                        label: 'Human Inventory Value',
-                        data: [100, 100, 98, 95, 20, 10, 5], // Human holds through crash
-                        borderColor: '#ef4444', // Red
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        label: 'Human Hodler Value',
+                        data: [1000, 1000, 900, 500, 100, 0], // Rides to zero
+                        borderColor: '#f43f5e',
+                        backgroundColor: 'rgba(244, 63, 94, 0.1)',
                         fill: true,
-                        tension: 0.3
+                        tension: 0.4
                     }
                 ]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    ...tooltipPlugin,
-                    annotation: {
-                        // Chart.js annotation plugin not loaded, using title context instead
-                    }
-                },
+                ...commonOptions,
                 scales: {
                     y: { beginAtZero: true, title: { display: true, text: 'Portfolio Value ($)' } }
                 }
             }
         });
-
     </script>
 </body>
 </html>
